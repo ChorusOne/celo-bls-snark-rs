@@ -5,7 +5,7 @@ use ark_ec::{msm::VariableBaseMSM, AffineCurve, PairingEngine, ProjectiveCurve};
 use ark_ff::{One, PrimeField};
 use ark_serialize::{CanonicalDeserialize, CanonicalSerialize, SerializationError};
 
-use std::{
+use ark_std::{
     borrow::Borrow,
     io::{Read, Write},
     ops::Neg,

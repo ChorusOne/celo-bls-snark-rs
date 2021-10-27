@@ -2,7 +2,6 @@ use ark_serialize::CanonicalSerialize;
 use bls_crypto::{hash_to_curve::try_and_increment::DIRECT_HASH_TO_G1, PrivateKey};
 
 use clap::{App, Arg};
-use rand::thread_rng;
 use std::{fs::File, io::Write};
 
 fn main() {
@@ -28,7 +27,7 @@ fn main() {
     let out = matches.value_of("out").unwrap();
 
     let try_and_increment = &*DIRECT_HASH_TO_G1;
-    let rng = &mut thread_rng();
+    let rng = &mut ark_std::test_rng();
     let mut file = File::create(out).unwrap();
     for _ in 0..num {
         let sk = PrivateKey::generate(rng);

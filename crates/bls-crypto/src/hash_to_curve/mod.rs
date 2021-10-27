@@ -27,11 +27,11 @@
 /// use ark_bls12_377::g1::Parameters;
 /// use bls_crypto::{
 ///     OUT_DOMAIN,
-///     hashers::composite::{CompositeHasher, CRH}, // We'll use the Composite Hasher
+///     hashers::composite::{CompositeHasher, BoweCRH}, // We'll use the Composite Hasher
 ///     hash_to_curve::{HashToCurve, try_and_increment::TryAndIncrement},
 /// };
 ///
-/// let composite_hasher = CompositeHasher::<CRH>::new().unwrap();
+/// let composite_hasher = CompositeHasher::<BoweCRH>::new().unwrap();
 /// let hasher = TryAndIncrement::<_, Parameters>::new(&composite_hasher);
 ///
 /// // hash the data as before
@@ -161,7 +161,7 @@ mod test {
     use super::*;
     use crate::hash_to_curve::try_and_increment::TryAndIncrement;
     use crate::hashers::{
-        composite::{CompositeHasher, CRH},
+        composite::{BoweCRH, CompositeHasher},
         DirectHasher, Hasher,
     };
     use ark_bls12_377::Parameters;
@@ -170,7 +170,7 @@ mod test {
         short_weierstrass_jacobian::GroupProjective, ProjectiveCurve,
     };
     use ark_serialize::CanonicalSerialize;
-    use rand::{Rng, RngCore};
+    use ark_std::rand::{RngCore, Rng};
 
     #[test]
     fn test_hash_length() {
@@ -186,7 +186,7 @@ mod test {
 
     #[test]
     fn hash_to_curve_composite_g1() {
-        let h = CompositeHasher::<CRH>::new().unwrap();
+        let h = CompositeHasher::<BoweCRH>::new().unwrap();
         hash_to_curve_test::<<Parameters as Bls12Parameters>::G1Parameters, _>(h)
     }
 
@@ -198,13 +198,13 @@ mod test {
 
     #[test]
     fn hash_to_curve_composite_g2() {
-        let h = CompositeHasher::<CRH>::new().unwrap();
+        let h = CompositeHasher::<BoweCRH>::new().unwrap();
         hash_to_curve_test::<<Parameters as Bls12Parameters>::G2Parameters, _>(h)
     }
 
     fn hash_to_curve_test<P: SWModelParameters, X: Hasher<Error = BLSError>>(h: X) {
         let hasher = TryAndIncrement::<X, P>::new(&h);
-        let mut rng = rand::thread_rng();
+        let mut rng = ark_std::test_rng();
         for length in &[10, 25, 50, 100, 200, 300] {
             let mut input = vec![0; *length];
             rng.fill_bytes(&mut input);
@@ -272,7 +272,7 @@ mod compat_tests {
     use super::*;
     use crate::hash_to_curve::try_and_increment::TryAndIncrement;
     use crate::hash_to_curve::try_and_increment_cip22::TryAndIncrementCIP22;
-    use crate::hashers::{composite::COMPOSITE_HASHER, Hasher};
+    use crate::hashers::{Hasher, composite::COMPOSITE_HASHER};
     use ark_bls12_377::Parameters;
     use ark_ec::{
         bls12::{Bls12Parameters, G1Affine, G1Projective},
@@ -284,7 +284,7 @@ mod compat_tests {
     use ark_std::{end_timer, start_timer};
     use byteorder::WriteBytesExt;
     use log::trace;
-    use rand::SeedableRng;
+    use rand_chacha::rand_core::SeedableRng;
     use rand_xorshift::XorShiftRng;
 
     const RNG_SEED: [u8; 16] = [

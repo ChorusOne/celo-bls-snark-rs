@@ -9,8 +9,8 @@ pub use public::PublicKey;
 mod signature;
 pub use signature::Signature;
 
-mod cache;
-pub use cache::PublicKeyCache;
+#[cfg(feture = "getrandom")] mod cache;
+#[cfg(feture = "getrandom")] pub use cache::PublicKeyCache;
 
-mod batch;
-pub use batch::Batch;
+#[cfg(feture = "getrandom")] mod batch;
+#[cfg(feture = "getrandom")] pub use batch::Batch;

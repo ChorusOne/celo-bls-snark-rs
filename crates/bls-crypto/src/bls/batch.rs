@@ -8,7 +8,7 @@ use ark_std::log2;
 
 use crate::{BLSError, HashToCurve};
 
-use rand::RngCore;
+use ark_std::rand::RngCore;
 
 #[derive(Default)]
 pub struct Batch {
@@ -60,7 +60,7 @@ impl Batch {
 
                 // Now that the batch is being verified, we can know how large the exponents need to be.
                 let mut random_bytes = vec![0; exp_size];
-                rand::thread_rng().fill_bytes(&mut random_bytes);
+                ark_std::rand::thread_rng().fill_bytes(&mut random_bytes);
 
                 Fr::from_random_bytes(&random_bytes).unwrap()
             })

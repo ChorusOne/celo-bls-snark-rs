@@ -3,13 +3,13 @@
 //! Blake2x as the XOF
 use crate::{hashers::DirectHasher, BLSError, Hasher};
 
-use ark_crypto_primitives::crh::{bowe_hopwood, pedersen, FixedLengthCRH};
-use ark_ec::ProjectiveCurve;
-use ark_ed_on_bw6_761::{EdwardsParameters, EdwardsProjective};
+use ark_crypto_primitives::crh::{bowe_hopwood, pedersen, CRHScheme};
+use ark_ed_on_bw6_761::{EdwardsParameters, FqParameters};
+use ark_ff::fields::models::Fp384;
 use ark_serialize::CanonicalSerialize;
+use ark_std::rand::{RngCore, SeedableRng};
 use blake2s_simd::Params;
 use once_cell::sync::Lazy;
-use rand::{Rng, SeedableRng};
 use rand_chacha::ChaChaRng;
 
 // Fix to get around leaking a private type in a public interface
@@ -29,21 +29,22 @@ mod window {
 /// Bowe Hopwood Pedersen CRH instantiated over Edwards BW6_761 with `WINDOW_SIZE = 93` and
 /// `NUM_WINDOWS = 560`
 #[allow(clippy::upper_case_acronyms)]
-pub type CRH = bowe_hopwood::CRH<EdwardsParameters, window::Window>;
+pub type BoweCRH = bowe_hopwood::CRH<EdwardsParameters, window::Window>;
+pub type CompositeBoweHasher = CompositeHasher<BoweCRH>;
 
 /// Lazily evaluated composite hasher instantiated over the
 /// Bowe-Hopwood-Pedersen CRH.
-pub static COMPOSITE_HASHER: Lazy<CompositeHasher<CRH>> =
-    Lazy::new(|| CompositeHasher::<CRH>::new().unwrap());
+pub static COMPOSITE_HASHER: Lazy<CompositeBoweHasher> =
+    Lazy::new(|| CompositeBoweHasher::new().unwrap());
 
 /// Uses the Bowe-Hopwood-Pedersen hash (instantiated with a prng) as a CRH and Blake2x as the XOF.
 /// The CRH does _not_ use the domain or the output bytes.
 #[derive(Clone, Debug)]
-pub struct CompositeHasher<H: FixedLengthCRH> {
+pub struct CompositeHasher<H: CRHScheme> {
     parameters: H::Parameters,
 }
 
-impl<H: FixedLengthCRH> CompositeHasher<H> {
+impl<H: CRHScheme> CompositeHasher<H> {
     /// Initializes the CRH and returns a new hasher
     pub fn new() -> Result<CompositeHasher<H>, BLSError> {
         Ok(CompositeHasher {
@@ -51,7 +52,7 @@ impl<H: FixedLengthCRH> CompositeHasher<H> {
         })
     }
 
-    fn prng() -> impl Rng {
+    fn prng() -> impl RngCore {
         let hash_result = Params::new()
             .hash_length(32)
             .personal(b"UL_prngs") // personalization
@@ -68,19 +69,19 @@ impl<H: FixedLengthCRH> CompositeHasher<H> {
     /// Instantiates the CRH's parameters
     pub fn setup_crh() -> Result<H::Parameters, BLSError> {
         let mut rng = Self::prng();
-        Ok(H::setup::<_>(&mut rng)?)
+        Ok(H::setup(&mut rng)?)
     }
 }
 
-impl<H: FixedLengthCRH<Output = EdwardsProjective>> Hasher for CompositeHasher<H> {
+impl<H: CRHScheme<Output = Fp384<FqParameters>, Input = [u8]>> Hasher for CompositeHasher<H> {
     type Error = BLSError;
 
     // TODO: Should we improve the trait design somehow? Seems like there's a bad abstraction
     // here if we do not use the 2 params
     fn crh(&self, _: &[u8], message: &[u8], _: usize) -> Result<Vec<u8>, Self::Error> {
-        let h = H::evaluate(&self.parameters, message)?.into_affine();
         let mut res = vec![];
-        h.x.serialize(&mut res)?;
+        let h = H::evaluate(&self.parameters, message)?.serialize(&mut res);
+        //h.x.serialize(&mut res)?;
 
         Ok(res)
     }
@@ -98,8 +99,7 @@ impl<H: FixedLengthCRH<Output = EdwardsProjective>> Hasher for CompositeHasher<H
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::hashers::Hasher;
-    use rand::{Rng, SeedableRng};
+    use ark_std::rand::{Rng, SeedableRng};
     use rand_xorshift::XorShiftRng;
 
     #[test]

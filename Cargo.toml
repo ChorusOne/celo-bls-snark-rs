@@ -2,9 +2,9 @@
 
 members = [ 
     "crates/bls-crypto", 
-    "crates/bls-gadgets",
-    "crates/epoch-snark",
-    "crates/bls-snark-sys",
+#    "crates/bls-gadgets",
+#    "crates/epoch-snark",
+#    "crates/bls-snark-sys",
 ]
 
 [profile.release]

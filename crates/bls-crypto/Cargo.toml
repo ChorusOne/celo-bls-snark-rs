@@ -5,31 +5,30 @@ authors = ["Kobi Gurkan <kobigurk@gmail.com>", "Michael Straka <mstraka@clabs.co
 edition = "2018"
 
 [dependencies]
-ark-bls12-377 = { git = "https://github.com/arkworks-rs/curves" }
-ark-serialize = { git = "https://github.com/arkworks-rs/algebra", features = [ "derive" ] }
-ark-ff = { git = "https://github.com/arkworks-rs/algebra", features = [ "std", "parallel"] }
-ark-ec = { git = "https://github.com/arkworks-rs/algebra", features = [ "std", "parallel"] }
-ark-std = { git = "https://github.com/arkworks-rs/std" }
-ark-ed-on-bw6-761 = { git = "https://github.com/arkworks-rs/curves" }
-ark-crypto-primitives = { git = "https://github.com/arkworks-rs/crypto-primitives", branch = "main", features = ["parallel"] }
+ark-std = {git = "https://github.com/ChorusOne/ark-std", branch = "giulio/random_feature", default-features = false, features = ["std"]} 
+ark-bls12-377 = {git = "https:/github.com/ChorusOne/ark-curves", branch = "giulio/random", default-features = false, features =["curve"]}
+ark-serialize = {git = "https://github.com/ChorusOne/ark-algebra", branch = "giulio/random", default-features = false, features = ["derive", "std"]}
+ark-ff = {git = "https://github.com/ChorusOne/ark-algebra", branch = "giulio/random", default-features = false}
+ark-ec = {git = "https://github.com/ChorusOne/ark-algebra", branch = "giulio/random", default-features = false}
+ark-ed-on-bw6-761 = {git = "https:/github.com/ChorusOne/ark-curves", branch = "giulio/random", default-features = false}
+ark-crypto-primitives = {git = "https:/github.com/ChorusOne/ark-crypto-primitives", branch = "giulio/random", default-features = false}
 
 # other deps
-rand = "0.7"
 byteorder = "1.4.2"
 hex = "0.4.2"
-clap = "2.33.0"
 log = "0.4.6"
-lru = "0.6.3"
-env_logger = "0.8.2"
+lru = {version = "0.6.3", optional = true}
 blake2s_simd = "0.5.8"
-csv = "1.1.5"
-rand_chacha = "0.2"
+rand_chacha = {version = "0.3"}
 thiserror = "1.0.23"
 once_cell = "1.3.1"
 
 [dev-dependencies]
 criterion = "0.3.1"
-rand_xorshift = "0.2"
+rand_xorshift = "0.3"
+clap = "2.33.0"
+env_logger = "0.8.2"
+csv = "1.1.5"
 
 [[example]]
 name = "simple_signature"
@@ -47,9 +46,10 @@ path = "examples/pop_csv.rs"
 crate-type = ["lib", "staticlib"]
 
 [features]
-default = [ "compat" ]
+default = [ "compat"]
 test-helpers = []
 compat = []
+getrandom = ["lru"]
 
 [[bench]]
 name = "batch_bls"

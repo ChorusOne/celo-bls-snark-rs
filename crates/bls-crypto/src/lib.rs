@@ -17,7 +17,7 @@
 //!     hash_to_curve::{HashToCurve, try_and_increment::DIRECT_HASH_TO_G1}
 //! };
 //!
-//! let rng = &mut rand::thread_rng();
+//! let rng = &mut ark_std::test_rng();
 //! let message = &b"hello"[..];
 //! let extra_data = &[];
 //! let hasher = &*DIRECT_HASH_TO_G1;
@@ -52,7 +52,9 @@
 //! algebra's `PairingEngine` trait. We will also support public keys on G1 and signatures on G2.
 
 pub mod bls;
-pub use bls::{PrivateKey, PublicKey, PublicKeyCache, Signature};
+pub use bls::{PrivateKey, PublicKey, Signature};
+#[cfg(feature = "getrandom")] pub use bls::PublicKeyCache;
+
 
 /// Traits and implementations for hashing arbitrary data to an elliptic curve's group element
 pub mod hash_to_curve;
@@ -89,7 +91,7 @@ pub enum BLSError {
 
     /// An IO error
     #[error("io error {0}")]
-    IoError(#[from] std::io::Error),
+    IoError(#[from] ark_std::io::Error),
 
     /// Error while hashing
     #[error("error in hasher {0}")]

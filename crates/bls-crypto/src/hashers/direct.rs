@@ -82,7 +82,7 @@ impl Hasher for DirectHasher {
 #[cfg(test)]
 mod test {
     use super::*;
-    use rand::{Rng, SeedableRng};
+    use ark_std::rand::{Rng, SeedableRng};
     use rand_xorshift::XorShiftRng;
 
     #[test]

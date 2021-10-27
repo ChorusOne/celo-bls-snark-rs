@@ -5,7 +5,7 @@ use std::marker::PhantomData;
 
 use super::HashToCurve;
 use crate::hashers::{
-    composite::{CompositeHasher, COMPOSITE_HASHER, CRH},
+    composite::{CompositeBoweHasher, COMPOSITE_HASHER},
     DirectHasher, Hasher,
 };
 use crate::BLSError;
@@ -26,10 +26,12 @@ use once_cell::sync::Lazy;
 
 const NUM_TRIES: u8 = 255;
 
+
+pub type CompositeHashTOG1<'a> =
+    TryAndIncrement<'a, CompositeBoweHasher, <Parameters as Bls12Parameters>::G1Parameters>;
 /// Composite (Bowe-Hopwood CRH, Blake2x XOF) Try-and-Increment hasher for BLS 12-377.
-pub static COMPOSITE_HASH_TO_G1: Lazy<
-    TryAndIncrement<CompositeHasher<CRH>, <Parameters as Bls12Parameters>::G1Parameters>,
-> = Lazy::new(|| TryAndIncrement::new(&*COMPOSITE_HASHER));
+pub static COMPOSITE_HASH_TO_G1: Lazy<CompositeHashTOG1> =
+    Lazy::new(|| CompositeHashTOG1::new(&*COMPOSITE_HASHER));
 
 /// Direct (Blake2s CRH, Blake2x XOF) Try-and-Increment hasher for BLS 12-377.
 /// Equivalent to Blake2xs.

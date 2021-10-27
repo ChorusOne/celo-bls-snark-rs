@@ -1,14 +1,10 @@
 use ark_ec::{PairingEngine, ProjectiveCurve};
 use ark_ff::{PrimeField, UniformRand, Zero};
 
-// Same RNG for all tests
-pub fn rng() -> rand::rngs::ThreadRng {
-    rand::thread_rng()
-}
 
 /// generate a keypair
 pub fn keygen<E: PairingEngine>() -> (E::Fr, E::G2Projective) {
-    let rng = &mut rng();
+    let rng = &mut ark_std::test_rng();
     let generator = E::G2Projective::prime_subgroup_generator();
 
     let secret_key = E::Fr::rand(rng);

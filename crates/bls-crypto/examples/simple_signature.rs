@@ -5,7 +5,6 @@ use bls_crypto::{
 use ark_ff::to_bytes;
 
 use clap::{App, Arg};
-use rand::thread_rng;
 
 fn main() {
     let matches = App::new("SimpleAggregatedSignature")
@@ -23,7 +22,7 @@ fn main() {
 
     println!("matches: {}", message);
 
-    let rng = &mut thread_rng();
+    let rng = &mut ark_std::test_rng();
 
     println!("rng");
 
