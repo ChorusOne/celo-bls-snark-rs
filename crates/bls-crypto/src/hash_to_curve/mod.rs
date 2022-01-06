@@ -68,8 +68,7 @@ pub trait HashToCurve {
 ///      2. given 96 = 768 bits, it will return 96 bytes (no rounding needed since 768 is already a
 ///         multiple of 256)
 pub fn hash_length(n: usize) -> usize {
-    let bits = (n * 8) as f64 / 256.0;
-    let rounded_bits = bits.ceil() * 256.0;
+    let rounded_bits = (((n * 8) - 1 + 256) / 256) * 256;
     rounded_bits as usize / 8
 }
 
@@ -170,7 +169,7 @@ mod test {
         short_weierstrass_jacobian::GroupProjective, ProjectiveCurve,
     };
     use ark_serialize::CanonicalSerialize;
-    use ark_std::rand::{RngCore, Rng};
+    use ark_std::rand::{Rng, RngCore};
 
     #[test]
     fn test_hash_length() {
@@ -272,7 +271,7 @@ mod compat_tests {
     use super::*;
     use crate::hash_to_curve::try_and_increment::TryAndIncrement;
     use crate::hash_to_curve::try_and_increment_cip22::TryAndIncrementCIP22;
-    use crate::hashers::{Hasher, composite::COMPOSITE_HASHER};
+    use crate::hashers::{composite::COMPOSITE_HASHER, Hasher};
     use ark_bls12_377::Parameters;
     use ark_ec::{
         bls12::{Bls12Parameters, G1Affine, G1Projective},
@@ -321,14 +320,12 @@ mod compat_tests {
 
         let hasher = &*COMPOSITE_HASHER;
 
-        let fp_bits =
-            (((<P::Fp as PrimeField>::Params::MODULUS_BITS as f64) / 8.0).ceil() as usize) * 8;
+        let fp_bits = ((<P::Fp as PrimeField>::Params::MODULUS_BITS -1 + 8) / 8) * 8;
         let num_bits = fp_bits;
         let num_bytes = num_bits / 8;
 
         //round up to a multiple of 8
-        let hash_fp_bits =
-            (((<P::Fp as PrimeField>::Params::MODULUS_BITS as f64) / 256.0).ceil() as usize) * 256;
+        let hash_fp_bits = ((<P::Fp as PrimeField>::Params::MODULUS_BITS -1 + 256) / 256) * 256;
         let hash_num_bits = hash_fp_bits;
         assert_eq!(hash_num_bits, EXPECTED_TOTAL_BITS);
         let hash_num_bytes = hash_num_bits / 8;
